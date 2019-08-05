@@ -1,0 +1,20 @@
+[package]
+name = "traxex"
+license = "MIT"
+version = "0.1.0"
+authors = ["Zhishan Zhang<zhangzhishanlo@gmail.com>"]
+description = "A library to download files through url link."
+
+[lib]
+name = "lib_traxex"
+path = "src/lib.rs"
+
+[[bin]]
+name = "traxex"
+path = "src/main.rs"
+
+[dependencies]
+clap = "2.33"
+reqwest = "0.9"
+error-chain = "0.12"
+indicatif = "0.11"
