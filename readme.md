@@ -1,5 +1,11 @@
 # Traxex
+[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Crates.io Version](https://img.shields.io/crates/v/traxex.svg)](https://crates.io/crates/traxex)
+[![Crates.io](https://img.shields.io/crates/d/traxex.svg)](https://crates.io/crates/traxex)
+[![Coverage Status](https://coveralls.io/repos/github/zhangzhishan/traxex/badge.svg?branch=master)](https://coveralls.io/github/zhangzhishan/traxex?branch=master)
 
+Linux: [![Build Status](https://travis-ci.org/zhangzhishan/traxex.svg?branch=master)](https://travis-ci.org/zhangzhishan/traxex)
+Windows: [![Build status](https://ci.appveyor.com/api/projects/status/8vje826k0p1e415l/branch/master?svg=true)](https://ci.appveyor.com/project/zhangzhishan/traxex/branch/master)
 ## Introduction
 Traxex is the name of a Dota hero my wife like most, so I chose this as the name. When I try to download some files in another rust application, which I am working on. I couldn't find a easy to use library for downloading like wget or something similar. Therefore, I wrote this library, a very easy download library. As I am a newbee in rust, so there may be some code can be improved. Welcome to give me some advice by issues or pull request. Thank you in advance.
 ## Usage

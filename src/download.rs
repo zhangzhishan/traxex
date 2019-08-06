@@ -111,7 +111,7 @@ fn test_filename_fix_existing() {
 /// use lib_traxex::download::download;
 /// fn main() {
 ///     let url_str = "https://raw.githubusercontent.com/zhangzhishan/blogpics/dev/traxex.jpg";
-///     match download(url_str, None) {
+///     match download(url_str, "yourfilename.jpg") {
 ///         Err(why) => panic!("couldn't write to : {}", why.to_string()),
 ///         Ok(display) => println!("successfully wrote to {}", display)
 ///     }
@@ -142,7 +142,7 @@ pub fn download(url: &str, out: Option<&str>) -> Result<String> {
     output_filename.push(filename);
 
     let mut path = output_filename.as_path();
-    println!("path: {}", path.display());
+    // println!("path: {}", path.display());
     let new_filename:String;
     if path.exists() {
         new_filename = filename_fix_existing(path);
