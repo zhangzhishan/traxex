@@ -111,7 +111,7 @@ fn test_filename_fix_existing() {
 /// use lib_traxex::download::download;
 /// fn main() {
 ///     let url_str = "https://raw.githubusercontent.com/zhangzhishan/blogpics/dev/traxex.jpg";
-///     match download(url_str, "yourfilename.jpg") {
+///     match download(url_str, Some("yourfilename.jpg")) {
 ///         Err(why) => panic!("couldn't write to : {}", why.to_string()),
 ///         Ok(display) => println!("successfully wrote to {}", display)
 ///     }
