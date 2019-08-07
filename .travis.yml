@@ -2,51 +2,52 @@ sudo: true
 language: rust
 cache: cargo
 rust:
-  - nightly
-  - beta
-  - stable
-  - 1.31.0
+- nightly
+- beta
+- stable
+- 1.31.0
 matrix:
-    allow_failures:
-        - rust: nightly
+  allow_failures:
+  - rust: nightly
 before_script:
-  - |
-    pip install git+git://github.com/kbknapp/travis-cargo.git --user &&
-    export PATH=$HOME/.local/bin:$PATH
+- |
+  pip install git+git://github.com/kbknapp/travis-cargo.git --user &&
+  export PATH=$HOME/.local/bin:$PATH
 script:
-  - |
-    travis-cargo --only stable test -- --verbose --no-default-features &&
-    travis-cargo --skip nightly test -- --verbose &&
-    travis-cargo --only nightly test -- --verbose &&
-    travis-cargo --only nightly bench -- --no-run 
+- |
+  travis-cargo build &&
+  travis-cargo test &&
+  travis-cargo bench &&
+  travis-cargo --only stable doc
 addons:
   apt:
     packages:
-    - binutils-dev 
+    - binutils-dev
     - libcurl4-openssl-dev
     - libelf-dev
     - libdw-dev
     - libiberty-dev
     - cmake
     - gcc
-    - zlib1g-dev 
+    - zlib1g-dev
 after_success:
-  - |
-    wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
-    tar xzf master.tar.gz &&
-    cd kcov-master &&
-    mkdir build &&
-    cd build &&
-    cmake .. &&
-    make &&
-    sudo make install &&
-    cd ../.. &&
-    rm -rf kcov-master &&
-    cargo clean &&
-    cargo test --no-run &&
-    for file in target/debug/*-*; do mkdir -p "target/cov/$(basename $file)"; kcov --exclude-pattern=/.cargo --verify "target/cov/$(basename $file)" "$file"; done &&
-    kcov --coveralls-id=$TRAVIS_JOB_ID --merge target/cov target/cov/* &&
-    echo "Uploaded code coverage"
+- |
+  wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz &&
+  tar xzf master.tar.gz &&
+  cd kcov-master &&
+  mkdir build &&
+  cd build &&
+  cmake .. &&
+  make &&
+  sudo make install &&
+  cd ../.. &&
+  rm -rf kcov-master &&
+  cargo clean &&
+  cargo test --no-run &&
+  for file in target/debug/*-*; do mkdir -p "target/cov/$(basename $file)"; kcov --exclude-pattern=/.cargo --verify "target/cov/$(basename $file)" "$file"; done &&
+  kcov --coveralls-id=$TRAVIS_JOB_ID --merge target/cov target/cov/* &&
+  echo "Uploaded code coverage"
 env:
   global:
-    - TRAVIS_CARGO_NIGHTLY_FEATURE=lints
+  - TRAVIS_CARGO_NIGHTLY_FEATURE=lints
+  - secure: jyaP5JDGIrSNscg944t+GKVIC6+WnN8ez4CEpGu8lwTlG+6vx7us0tQr+tVy7xg8rfg/JGQOcEn5Np7e0dMxb+mZoJgFkbQlb3KVLobcx6feMoGzfTuk21C649sIo99XC6fvILXmILEZmv9/oSfUD1F+BOmCxIFZqq4DsgPIclezEhi1O0cwQmppxp1CogWWanxk7qiU/UonTl1t0WccBT6bKhc1PzID4lbJoohbuY5qbgzElevGecuoRkoGlc8LpA98G/naygM2RwbAIA9pKiopTge2uhVNC/antfmNr+Ka0itZ2mvIIVgznLggK+igUvaC4KwlvyhxippL8SjvmdsbcFhJUtegNSv7uqWLg7TX9tLitaeq9x3MzS3sRK4VfC7roRvpMNO9dn65PBSBOYJgWZu+8d18J3SNHAHpWKH5wtvCy5ghD9QuOK6XHZs4fUT3N84VmK+UjaP0mBRE9dsmZuEo3j1XxYF+1BzDKhXU2X0CJJ+Yi4DHJTHFYAhLLqo6JON0lAJI1/srd9NRme4MmkbhWlaoiYcvWGLt+0tlJrPxpKCvKo0LjkKS0ztENPosVdeWowpSjvDkesIzNUjw324ybTwRDIBal51DPi9bT7axTlF2dgv+N7BEcP9+iCMG4iQDBxmuZmq/lNlwO71L5h5WSGJjk7uN/eH5pKQ=
