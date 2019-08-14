@@ -228,6 +228,7 @@ fn test_filename_from_url() {
 //     :param: headers as HeaderMap
 //     :return: filename from content-disposition header or None
 fn filename_from_headers(headers: &HeaderMap) -> &str {
+    let mut ret = "";
     if let Some(cdisp) = headers.get(CONTENT_DISPOSITION) {
         let mut cdtype: Vec<&str> = cdisp.to_str().unwrap().split(';').collect();
         let set: HashSet<_> = ["inline".to_string(), "attachment".to_string()].iter().cloned().collect();
@@ -239,21 +240,10 @@ fn filename_from_headers(headers: &HeaderMap) -> &str {
                 let filenames: Vec<&str> = cdtype[0].split('=').collect();
                 let filename = filenames[1].trim();
                 if let Some(base_filename) = Path::new(filename).file_name() {
-                    return base_filename.to_str().unwrap();
-                }
-                else {
-                    return "";
+                    ret = base_filename.to_str().unwrap();
                 }
             }
-            else {
-                return "";
-            }
-        }
-        else {
-            return "";
         }
     }
-    else {
-        return "";
-    }
+    ret
 }
