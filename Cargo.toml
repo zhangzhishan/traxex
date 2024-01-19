@@ -2,8 +2,11 @@
 name = "traxex"
 license = "MIT"
 version = "0.1.1"
+edition = "2018"
 authors = ["Zhishan Zhang<zhangzhishanlo@gmail.com>"]
 description = "A library to download files through url link."
+repository = "https://github.com/zhangzhishan/traxex/tree/master"
+readme = "README.md"
 
 [lib]
 name = "lib_traxex"
