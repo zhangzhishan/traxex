@@ -230,7 +230,7 @@ fn test_filename_from_url() {
 fn filename_from_headers(headers: &HeaderMap) -> &str {
     let mut ret = "";
     if let Some(cdisp) = headers.get(CONTENT_DISPOSITION) {
-        let mut cdtype: Vec<&str> = cdisp.to_str().unwrap().split(';').collect();
+        let mut cdtype: Vec<&str> = cdisp.to_str().unwrap_or("").split(';').collect();
         let set: HashSet<_> = ["inline".to_string(), "attachment".to_string()].iter().cloned().collect();
 
         if cdtype.len() > 1 && set.contains(&cdtype[0].trim().to_lowercase()) {
@@ -246,4 +246,20 @@ fn filename_from_headers(headers: &HeaderMap) -> &str {
         }
     }
     ret
+}
+
+#[test]
+fn test_filename_from_headers_valid() {
+    let mut headers = HeaderMap::new();
+    headers.insert(CONTENT_DISPOSITION, HeaderValue::from_static("attachment; filename=traxex.jpg"));
+    let filename = filename_from_headers(&headers);
+    assert_eq!(filename, "traxex.jpg");
+}
+
+#[test]
+fn test_filename_from_headers_invalid() {
+    let mut headers = HeaderMap::new();
+    headers.insert(CONTENT_DISPOSITION, HeaderValue::from_bytes(&[0x80, 0x80, 0xff, 0xfe, 0xfd]).unwrap());
+    let filename = filename_from_headers(&headers);
+    assert_eq!(filename, "");
 }
