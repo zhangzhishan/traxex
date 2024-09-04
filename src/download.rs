@@ -13,15 +13,8 @@ use std::collections::HashSet;
 use reqwest::header::{HeaderMap, CONTENT_LENGTH, RANGE, HeaderValue};
 use reqwest::StatusCode;
 use indicatif::{ProgressBar, ProgressStyle};
+use anyhow::{bail, Result};
 
-
-error_chain! {
-    foreign_links {
-        Io(std::io::Error);
-        Reqwest(reqwest::Error);
-        Header(reqwest::header::ToStrError);
-    }
-}
 
 struct PartialRangeIter {
     start: u64,
@@ -32,7 +25,7 @@ struct PartialRangeIter {
 impl PartialRangeIter {
     pub fn new(start: u64, end: u64, buffer_size: u32) -> Result<Self> {
         if buffer_size == 0 {
-            Err("invalid buffer_size, give a value greater than zero.")?;
+            bail!("invalid buffer_size, give a value greater than zero.");
         }
 
         Ok(PartialRangeIter {
@@ -64,7 +57,7 @@ fn filename_fix_existing(filename: &Path) -> String {
     // Expands name portion of filename with numeric ' (x)' suffix to
     // return filename that doesn't exist already.
     let name = filename.file_stem().unwrap().to_str().unwrap();
-    // println!("{}",name);
+    tracing::debug!("{}",name);
     let ext = filename.extension().unwrap().to_str().unwrap();
     let dir = filename.parent().unwrap();
     let mut max_index = 0;
@@ -78,8 +71,8 @@ fn filename_fix_existing(filename: &Path) -> String {
                 let name_start_index = s.find(name).unwrap_or(s.len());
                 s.replace_range(name_start_index..name.len(), "");
                 s = s.trim().to_string();
-                // println!("name_start_index: {}, s: {}", name_start_index, s);
-                // println!("{}, {}", s.starts_with("("), s.ends_with(")"));
+                tracing::debug!("name_start_index: {}, s: {}", name_start_index, s);
+                tracing::debug!("{}, {}", s.starts_with("("), s.ends_with(")"));
                 if s.starts_with("(") && s.ends_with(")") {
                     let index = &s[1..s.len() - 1];
                     if let Ok(int_index) = index.parse::<usize>() {
@@ -89,7 +82,7 @@ fn filename_fix_existing(filename: &Path) -> String {
                     }
                 }
             }
-            
+
         }
     }
     let new_filename = format!("{} ({}).{}", name, max_index + 1, ext);
@@ -118,14 +111,13 @@ fn test_filename_fix_existing() {
 /// }
 /// ```
 pub fn download(url: &str, out: Option<&str>) -> Result<String> {
-    let client = reqwest::Client::new();
+    let client = reqwest::blocking::Client::new();
     let contents = client
         .get(url)
-        .send()
-        .unwrap();
+        .send()?;
 
     let headers = contents.headers().clone();
-    // println!("{}", contents.content_length().unwrap());
+    tracing::debug!("{}", contents.content_length().unwrap());
     let mut output_dir = "";
     let mut filename = detect_filename(url, &headers);
     if let Some(output) = out {
@@ -142,7 +134,7 @@ pub fn download(url: &str, out: Option<&str>) -> Result<String> {
     output_filename.push(filename);
 
     let mut path = output_filename.as_path();
-    // println!("path: {}", path.display());
+    tracing::debug!("path: {}", path.display());
     let new_filename:String;
     if path.exists() {
         new_filename = filename_fix_existing(path);
@@ -156,19 +148,19 @@ pub fn download(url: &str, out: Option<&str>) -> Result<String> {
         Ok(output_file) => output_file,
     };
 
-
     const CHUNK_SIZE: u32 = 10240;
 
     let response = client.head(url).send()?;
     let length = response
         .headers()
         .get(CONTENT_LENGTH)
-        .ok_or("response doesn't include the content length")?;
-    let length = u64::from_str(length.to_str()?).map_err(|_| "invalid Content-Length header")?;
+        .ok_or_else(|| anyhow::anyhow!("response doesn't include the content length"))?;
+    let length = u64::from_str(length.to_str()?).map_err(|_| anyhow::anyhow!("invalid Content-Length header"))?;
     let mut downloaded = 0;
     let pb = ProgressBar::new(length);
     pb.set_style(ProgressStyle::default_bar()
         .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+        .unwrap()
         .progress_chars("#>-"));
 
     for range in PartialRangeIter::new(0, length - 1, CHUNK_SIZE)? {
@@ -190,7 +182,7 @@ pub fn download(url: &str, out: Option<&str>) -> Result<String> {
     return Ok(display.to_string());
 }
 
-// Return filename for saving file. If no filename is detected from output 
+// Return filename for saving file. If no filename is detected from output
 // argument, url or headers, return default (download.traxex)
 fn detect_filename<'a>(url: &'a str, headers: &'a HeaderMap) -> &'a str {
     let mut filename = "";
