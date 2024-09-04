@@ -61,6 +61,9 @@ fn filename_fix_existing(filename: &Path) -> String {
     let ext = filename.extension().unwrap().to_str().unwrap();
     let dir = filename.parent().unwrap();
     let mut max_index = 0;
+    tracing::debug!("{} {:?}", name, dir);
+    // if dir is empty, it needs to be current folder, change to "./".
+    let dir = if dir.to_str().unwrap().is_empty() { Path::new("./") } else { dir };
     for entry in fs::read_dir(dir).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
@@ -85,7 +88,7 @@ fn filename_fix_existing(filename: &Path) -> String {
 
         }
     }
-    let new_filename = format!("{} ({}).{}", name, max_index + 1, ext);
+    let new_filename = format!("{}_{}.{}", name, max_index + 1, ext);
     new_filename
 }
 
@@ -94,7 +97,7 @@ fn filename_fix_existing(filename: &Path) -> String {
 fn test_filename_fix_existing() {
     let mut filename = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     filename.push("resources/tests/traxex.jpg");
-    assert_eq!(filename_fix_existing(filename.as_path()), "traxex (1).jpg");
+    assert_eq!(filename_fix_existing(filename.as_path()), "traxex_1.jpg");
 }
 
 /// Download a file according to its url.
@@ -143,8 +146,8 @@ pub fn download(url: &str, out: Option<&str>) -> Result<String> {
         path = output_filename.as_path();
     }
     let display = path.display();
-    let mut output_file = match File::create(&path) {
-        Err(why) => panic!("couldn't create {}: {}", display, why.to_string()),
+    let mut output_file = match File::create(path) {
+        Err(why) => panic!("couldn't create {}: {}", display, why),
         Ok(output_file) => output_file,
     };
 
@@ -179,7 +182,7 @@ pub fn download(url: &str, out: Option<&str>) -> Result<String> {
 
     pb.finish_with_message("downloaded");
 
-    return Ok(display.to_string());
+    Ok(display.to_string())
 }
 
 // Return filename for saving file. If no filename is detected from output
@@ -189,14 +192,14 @@ fn detect_filename<'a>(url: &'a str, headers: &'a HeaderMap) -> &'a str {
     if !headers.is_empty() {
         filename = filename_from_headers(headers);
     }
-    if filename == "" && url != "" {
+    if filename.is_empty() && !url.is_empty() {
         filename = filename_from_url(url);
     }
-    if filename != "" {
-        return filename;
+    if !filename.is_empty() {
+        filename
     }
     else {
-        return "download.traxex";
+        "download.traxex"
     }
 }
 

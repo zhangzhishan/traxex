@@ -7,7 +7,7 @@ fn main() {
     let args = Args::parse();
 
     match download(&args.url, args.output.as_deref()) {
-        Err(why) => panic!("couldn't write to : {}", why.to_string()),
+        Err(why) => panic!("couldn't write to : {}", why),
         Ok(display) => println!("successfully wrote to {}", display)
     }
 }

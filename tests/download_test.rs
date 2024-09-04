@@ -15,7 +15,7 @@ mod test_download {
             fs::remove_file(filename).unwrap();
         }
         match download(url_str, None) {
-            Err(why) => panic!("couldn't write to : {}", why.to_string()),
+            Err(why) => panic!("couldn't write to : {}", why),
             Ok(display) => assert_eq!(display, filename)
         }
         assert!(Path::new(filename).exists());
