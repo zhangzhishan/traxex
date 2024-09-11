@@ -120,7 +120,7 @@ pub fn download(url: &str, out: Option<&str>) -> Result<String> {
         .send()?;
 
     let headers = contents.headers().clone();
-    tracing::debug!("{}", contents.content_length().unwrap());
+    tracing::debug!("content length: {}", contents.content_length().unwrap());
     let mut output_dir = "";
     let mut filename = detect_filename(url, &headers);
     if let Some(output) = out {
@@ -159,6 +159,7 @@ pub fn download(url: &str, out: Option<&str>) -> Result<String> {
         .get(CONTENT_LENGTH)
         .ok_or_else(|| anyhow::anyhow!("response doesn't include the content length"))?;
     let length = u64::from_str(length.to_str()?).map_err(|_| anyhow::anyhow!("invalid Content-Length header"))?;
+    tracing::debug!("content length: {}", length);
     let mut downloaded = 0;
     let pb = ProgressBar::new(length);
     pb.set_style(ProgressStyle::default_bar()
@@ -179,6 +180,7 @@ pub fn download(url: &str, out: Option<&str>) -> Result<String> {
 
         std::io::copy(&mut response, &mut output_file)?;
     }
+    tracing::debug!("downloaded size: {}", downloaded);
 
     pb.finish_with_message("downloaded");
 
